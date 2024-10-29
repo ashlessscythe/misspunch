@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 
 interface Point {
   x: number;
@@ -19,43 +19,68 @@ export function SignaturePad({
   height = 200,
 }: SignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const isDrawing = useRef(false);
   const lastPoint = useRef<Point | null>(null);
+  const isInitialized = useRef(false);
 
+  // Initialize canvas once
   useEffect(() => {
+    if (isInitialized.current) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    // Handle high DPI displays
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+
+    // Scale the context to handle the device pixel ratio
+    context.scale(dpr, dpr);
 
     // Set up canvas
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    context.strokeStyle = "black";
+    context.lineWidth = 2;
+    context.lineCap = "round";
+    context.lineJoin = "round";
 
-    // Clear canvas
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Set white background
+    context.fillStyle = "white";
+    context.fillRect(0, 0, width, height);
+
+    setCtx(context);
+    isInitialized.current = true;
+  }, [width, height]);
+
+  // Set up event handlers
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !ctx) return;
+
+    // Convert coordinates to account for canvas scaling
+    const getPoint = (e: MouseEvent | TouchEvent): Point => {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+      const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+
+      return {
+        x: ((clientX - rect.left) / rect.width) * width,
+        y: ((clientY - rect.top) / rect.height) * height,
+      };
+    };
 
     // Handle drawing
     const draw = (e: MouseEvent | TouchEvent) => {
-      if (!isDrawing.current || !ctx || !canvas) return;
+      if (!isDrawing.current) return;
 
       e.preventDefault();
-
-      const rect = canvas.getBoundingClientRect();
-      const point: Point = {
-        x:
-          "touches" in e
-            ? e.touches[0].clientX - rect.left
-            : e.clientX - rect.left,
-        y:
-          "touches" in e
-            ? e.touches[0].clientY - rect.top
-            : e.clientY - rect.top,
-      };
+      const point = getPoint(e);
 
       if (lastPoint.current) {
         ctx.beginPath();
@@ -68,23 +93,17 @@ export function SignaturePad({
     };
 
     const startDrawing = (e: MouseEvent | TouchEvent) => {
+      e.preventDefault();
       isDrawing.current = true;
-      const rect = canvas.getBoundingClientRect();
-      lastPoint.current = {
-        x:
-          "touches" in e
-            ? e.touches[0].clientX - rect.left
-            : e.clientX - rect.left,
-        y:
-          "touches" in e
-            ? e.touches[0].clientY - rect.top
-            : e.clientY - rect.top,
-      };
+      lastPoint.current = getPoint(e);
     };
 
     const stopDrawing = () => {
+      if (!isDrawing.current) return;
+
       isDrawing.current = false;
       lastPoint.current = null;
+
       if (onChange) {
         onChange(canvas.toDataURL());
       }
@@ -100,6 +119,7 @@ export function SignaturePad({
     canvas.addEventListener("touchstart", startDrawing);
     canvas.addEventListener("touchmove", draw);
     canvas.addEventListener("touchend", stopDrawing);
+    canvas.addEventListener("touchcancel", stopDrawing);
 
     // Cleanup
     return () => {
@@ -110,15 +130,34 @@ export function SignaturePad({
       canvas.removeEventListener("touchstart", startDrawing);
       canvas.removeEventListener("touchmove", draw);
       canvas.removeEventListener("touchend", stopDrawing);
+      canvas.removeEventListener("touchcancel", stopDrawing);
     };
-  }, [onChange]);
+  }, [ctx, width, height, onChange]);
+
+  const clearSignature = () => {
+    if (!ctx) return;
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, width, height);
+
+    if (onChange && canvasRef.current) {
+      onChange(canvasRef.current.toDataURL());
+    }
+  };
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={width}
-      height={height}
-      className="signature-area border rounded-md cursor-crosshair touch-none"
-    />
+    <div className="relative border rounded-md overflow-hidden bg-white">
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full cursor-crosshair touch-none"
+      />
+      <button
+        type="button"
+        onClick={clearSignature}
+        className="absolute bottom-2 right-2 bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded text-sm"
+      >
+        Clear
+      </button>
+    </div>
   );
 }

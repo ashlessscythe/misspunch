@@ -1,11 +1,11 @@
 "use client";
 
-import { useSession, SessionProvider } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ThemeSelector } from "./theme-selector";
 import { SignOutButton } from "./sign-out-button";
 
-function HeaderContent() {
+export function Header() {
   const { data: session } = useSession();
 
   return (
@@ -20,13 +20,25 @@ function HeaderContent() {
           <nav className="flex items-center space-x-4">
             {session?.user && (
               <>
+                {session.user.role === "ADMIN" && (
+                  <>
+                    <Link href="/records" className="text-sm font-medium">
+                      All Records
+                    </Link>
+                  </>
+                )}
                 {session.user.role === "PAYROLL_STAFF" && (
-                  <Link
-                    href="/dashboard/payroll"
-                    className="text-sm font-medium"
-                  >
-                    Create Record
-                  </Link>
+                  <>
+                    <Link
+                      href="/dashboard/payroll"
+                      className="text-sm font-medium"
+                    >
+                      Create Record
+                    </Link>
+                    <Link href="/records" className="text-sm font-medium">
+                      Signed Records
+                    </Link>
+                  </>
                 )}
                 {session.user.role === "SUPERVISOR" && (
                   <Link
@@ -54,13 +66,5 @@ function HeaderContent() {
         </div>
       </div>
     </header>
-  );
-}
-
-export function Header() {
-  return (
-    <SessionProvider>
-      <HeaderContent />
-    </SessionProvider>
   );
 }

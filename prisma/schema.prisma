@@ -11,6 +11,7 @@ datasource db {
 }
 
 enum UserRole {
+  ADMIN
   PAYROLL_STAFF
   SUPERVISOR
   ASSOCIATE
