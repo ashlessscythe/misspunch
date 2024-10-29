@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PAYROLL_STAFF
+  SUPERVISOR
+  ASSOCIATE
+}
+
+enum MissPunchReason {
+  FORGOT_TIME_CARD
+  LOST_TIME_CARD
+  FORGOT_TO_PUNCH
+  IN_THE_FIELD
+  OTHER
+}
+
+model User {
+  id            String       @id @default(cuid())
+  sso           String       @unique
+  name          String
+  role          UserRole
+  timePunches   TimePunch[]  @relation("EmployeeTimePunches")
+  reviewedPunches TimePunch[] @relation("SupervisorReviews")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model TimePunch {
+  id              String          @id @default(cuid())
+  employee        User            @relation("EmployeeTimePunches", fields: [employeeId], references: [id])
+  employeeId      String
+  supervisor      User?           @relation("SupervisorReviews", fields: [supervisorId], references: [id])
+  supervisorId    String?
+  date            DateTime
+  timeIn          DateTime?
+  timeOut         DateTime?
+  mealIn          DateTime?
+  mealOut         DateTime?
+  missPunchReason MissPunchReason?
+  otherReason     String?
+  location        String
+  amount          String?
+  signature       String?         // Digital signature data
+  signatureDate   DateTime?
+  isDigitallySigned Boolean       @default(false)
+  document        UploadedDocument?
+  auditLogs       AuditLog[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model UploadedDocument {
+  id          String     @id @default(cuid())
+  timePunch   TimePunch  @relation(fields: [timePunchId], references: [id])
+  timePunchId String     @unique
+  fileUrl     String
+  uploadedAt  DateTime   @default(now())
+}
+
+model AuditLog {
+  id          String     @id @default(cuid())
+  timePunch   TimePunch  @relation(fields: [timePunchId], references: [id])
+  timePunchId String
+  action      String     // e.g., "CREATE", "UPDATE", "DELETE"
+  changes     Json       // Store the changes made
+  performedBy String     // User ID who made the change
+  createdAt   DateTime   @default(now())
+}
