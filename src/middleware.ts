@@ -1,56 +1,49 @@
+import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import type { NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  const isAuthPage =
-    request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/register");
-  const isPublicRoute =
-    request.nextUrl.pathname.startsWith("/api/test") ||
-    request.nextUrl.pathname.startsWith("/api/register") ||
-    request.nextUrl.pathname.startsWith("/api/auth");
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token;
+    const path = req.nextUrl.pathname;
 
-  if (isPublicRoute) {
-    return NextResponse.next();
-  }
-
-  try {
-    const token = await getToken({ req: request });
-
-    if (isAuthPage) {
-      if (token) {
-        return NextResponse.redirect(new URL("/", request.url));
-      }
-      return NextResponse.next();
-    }
-
-    if (!token) {
-      let from = request.nextUrl.pathname;
-      if (request.nextUrl.search) {
-        from += request.nextUrl.search;
+    // Protect dashboard routes based on role
+    if (path.startsWith("/dashboard")) {
+      if (!token) {
+        return NextResponse.redirect(new URL("/login", req.url));
       }
 
-      return NextResponse.redirect(
-        new URL(`/login?from=${encodeURIComponent(from)}`, request.url)
-      );
+      // Handle role-specific routes
+      if (
+        path.startsWith("/dashboard/payroll") &&
+        token.role !== "PAYROLL_STAFF"
+      ) {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
+
+      if (
+        path.startsWith("/dashboard/supervisor") &&
+        token.role !== "SUPERVISOR"
+      ) {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
+
+      if (
+        path.startsWith("/dashboard/associate") &&
+        token.role !== "ASSOCIATE"
+      ) {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
     }
-  } catch (error) {
-    console.error("Middleware error:", error);
+
     return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
   }
-}
+);
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     * - public files
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/dashboard/:path*"],
 };

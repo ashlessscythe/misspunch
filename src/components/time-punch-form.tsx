@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,8 @@ const reasons = [
 type Reason = (typeof reasons)[number]["value"];
 
 interface FormData {
+  employeeId: string;
+  supervisorId: string;
   name: string;
   sso: string;
   date: string;
@@ -41,6 +43,8 @@ interface FormData {
 }
 
 const initialFormData: FormData = {
+  employeeId: "",
+  supervisorId: "",
   name: "",
   sso: "",
   date: "",
@@ -56,13 +60,58 @@ const initialFormData: FormData = {
   todayDate: new Date().toISOString().split("T")[0],
 };
 
+interface User {
+  id: string;
+  name: string;
+  role: string;
+}
+
 export function TimePunchForm() {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [showOtherReason, setShowOtherReason] = useState(false);
+  const [employees, setEmployees] = useState<User[]>([]);
+  const [supervisors, setSupervisors] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Fetch employees and supervisors
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("/api/users");
+        const users = await response.json();
+        setEmployees(users.filter((user: User) => user.role === "ASSOCIATE"));
+        setSupervisors(
+          users.filter((user: User) => user.role === "SUPERVISOR")
+        );
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleEmployeeChange = (value: string) => {
+    const employee = employees.find((emp) => emp.id === value);
+    if (employee) {
+      setFormData((prev) => ({
+        ...prev,
+        employeeId: value,
+        name: employee.name,
+      }));
+    }
+  };
+
+  const handleSupervisorChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      supervisorId: value,
+    }));
   };
 
   const handleReasonChange = (value: string) => {
@@ -80,12 +129,29 @@ export function TimePunchForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      // TODO: Implement form submission
-      console.log("Form submitted:", formData);
+      const response = await fetch("/api/time-punch", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create time punch record");
+      }
+
+      // Reset form after successful submission
+      setFormData(initialFormData);
+      alert("Time punch record created successfully!");
     } catch (error) {
       console.error("Error submitting form:", error);
+      alert("Error creating time punch record");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -102,15 +168,38 @@ export function TimePunchForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name (Print)</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Enter full name"
-                required
-              />
+              <Label>Select Employee</Label>
+              <Select onValueChange={handleEmployeeChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      {employee.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            <div className="space-y-2">
+              <Label>Select Supervisor</Label>
+              <Select onValueChange={handleSupervisorChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select supervisor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {supervisors.map((supervisor) => (
+                    <SelectItem key={supervisor.id} value={supervisor.id}>
+                      {supervisor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="sso">SSO</Label>
               <Input
@@ -121,9 +210,6 @@ export function TimePunchForm() {
                 required
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="date">Date</Label>
               <Input
@@ -131,16 +217,6 @@ export function TimePunchForm() {
                 type="date"
                 value={formData.date}
                 onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location">Location #</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={handleInputChange}
-                placeholder="Enter location number"
                 required
               />
             </div>
@@ -154,7 +230,6 @@ export function TimePunchForm() {
                 type="time"
                 value={formData.timeIn}
                 onChange={handleInputChange}
-                required
               />
             </div>
             <div className="space-y-2">
@@ -164,7 +239,6 @@ export function TimePunchForm() {
                 type="time"
                 value={formData.timeOut}
                 onChange={handleInputChange}
-                required
               />
             </div>
           </div>
@@ -188,6 +262,17 @@ export function TimePunchForm() {
                 onChange={handleInputChange}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="location">Location #</Label>
+            <Input
+              id="location"
+              value={formData.location}
+              onChange={handleInputChange}
+              placeholder="Enter location number"
+              required
+            />
           </div>
 
           <div className="space-y-2">
@@ -230,22 +315,6 @@ export function TimePunchForm() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Employee Signature</Label>
-            <SignaturePad onChange={handleSignatureChange} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="todayDate">Today's Date</Label>
-            <Input
-              id="todayDate"
-              type="date"
-              value={formData.todayDate}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
           <div className="flex justify-end space-x-4">
             <Button
               type="button"
@@ -255,8 +324,8 @@ export function TimePunchForm() {
             >
               Print
             </Button>
-            <Button type="submit" className="print:hidden">
-              Submit
+            <Button type="submit" className="print:hidden" disabled={loading}>
+              {loading ? "Creating..." : "Submit"}
             </Button>
           </div>
         </form>
