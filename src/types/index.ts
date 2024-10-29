@@ -37,7 +37,7 @@ export function serializeTimePunch(
     };
   }
 ): SerializedTimePunch {
-  return {
+  const serialized: SerializedTimePunch = {
     ...punch,
     date: punch.date.toISOString(),
     timeIn: punch.timeIn?.toISOString() || null,
@@ -47,5 +47,10 @@ export function serializeTimePunch(
     signatureDate: punch.signatureDate?.toISOString() || null,
     createdAt: punch.createdAt.toISOString(),
     updatedAt: punch.updatedAt.toISOString(),
+    employee: {
+      name: punch.employee.name,
+      sso: punch.employee.sso,
+    },
   };
+  return serialized;
 }

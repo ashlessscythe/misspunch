@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import { authConfig } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-// Use named export for GET method
+export const dynamic = "force-dynamic";
+
 export const GET = async () => {
   try {
     const session = await getServerSession(authConfig);
