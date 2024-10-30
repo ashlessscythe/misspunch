@@ -23,16 +23,6 @@ export default async function DashboardPage() {
         {session.user.role === "ADMIN" && (
           <>
             <Link
-              href="/records/pending"
-              className="block p-4 rounded-lg border hover:border-blue-500 transition-colors"
-            >
-              <h2 className="text-lg font-semibold mb-2">Pending Records</h2>
-              <p className="text-sm text-muted-foreground">
-                View and manage pending time punch records
-              </p>
-            </Link>
-
-            <Link
               href="/records/assigned"
               className="block p-4 rounded-lg border hover:border-blue-500 transition-colors"
             >
@@ -74,6 +64,31 @@ export default async function DashboardPage() {
               <h2 className="text-lg font-semibold mb-2">Assigned Records</h2>
               <p className="text-sm text-muted-foreground">
                 View and manage assigned time punch records
+              </p>
+            </Link>
+          </>
+        )}
+
+        {/* Supervisor Links */}
+        {session.user.role === "SUPERVISOR" && (
+          <>
+            <Link
+              href="/dashboard/supervisor"
+              className="block p-4 rounded-lg border hover:border-blue-500 transition-colors"
+            >
+              <h2 className="text-lg font-semibold mb-2">Review Records</h2>
+              <p className="text-sm text-muted-foreground">
+                Review time punch records
+              </p>
+            </Link>
+
+            <Link
+              href="/dashboard/supervisor/signed"
+              className="block p-4 rounded-lg border hover:border-blue-500 transition-colors"
+            >
+              <h2 className="text-lg font-semibold mb-2">Signed Records</h2>
+              <p className="text-sm text-muted-foreground">
+                View signed time punch records
               </p>
             </Link>
           </>

@@ -34,18 +34,15 @@ export function Header() {
                 {session.user.role === "ADMIN" && (
                   <>
                     <Link
-                      href="/records/pending"
-                      className="text-sm font-medium"
-                    >
-                      Pending Records
-                    </Link>
-                    <Link
                       href="/records/assigned"
                       className="text-sm font-medium"
                     >
                       Assigned Records
                     </Link>
-                    <Link href="/records" className="text-sm font-medium">
+                    <Link
+                      href="/records/signed"
+                      className="text-sm font-medium"
+                    >
                       Signed Records
                     </Link>
                   </>
@@ -53,18 +50,15 @@ export function Header() {
                 {session.user.role === "PAYROLL_STAFF" && (
                   <>
                     <Link
-                      href="/records/pending"
-                      className="text-sm font-medium"
-                    >
-                      Pending Records
-                    </Link>
-                    <Link
                       href="/records/assigned"
                       className="text-sm font-medium"
                     >
                       Assigned Records
                     </Link>
-                    <Link href="/records" className="text-sm font-medium">
+                    <Link
+                      href="/records/signed"
+                      className="text-sm font-medium"
+                    >
                       Signed Records
                     </Link>
                   </>
