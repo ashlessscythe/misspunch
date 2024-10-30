@@ -13,7 +13,7 @@ export default async function SignedRecordsPage() {
     !session?.user ||
     !["ADMIN", "PAYROLL_STAFF"].includes(session.user.role)
   ) {
-    redirect("/login");
+    redirect("/dashboard");
   }
 
   // Fetch all records for admin, only signed ones for payroll

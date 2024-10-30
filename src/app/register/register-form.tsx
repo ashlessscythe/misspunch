@@ -5,14 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { UserRole } from "@prisma/client";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -30,7 +22,6 @@ export function RegisterForm() {
       email: formData.get("email") as string,
       password: formData.get("password") as string,
       sso: formData.get("sso") as string,
-      role: formData.get("role") as UserRole,
     };
 
     try {
@@ -92,20 +83,6 @@ export function RegisterForm() {
       <div className="space-y-2">
         <Label htmlFor="sso">SSO</Label>
         <Input id="sso" name="sso" placeholder="Enter your SSO" required />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="role">Role</Label>
-        <Select name="role" required>
-          <SelectTrigger>
-            <SelectValue placeholder="Select your role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="PAYROLL_STAFF">Payroll Staff</SelectItem>
-            <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
-            <SelectItem value="ASSOCIATE">Associate</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {error && <p className="text-sm text-red-500">{error}</p>}
