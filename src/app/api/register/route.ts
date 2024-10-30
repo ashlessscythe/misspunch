@@ -2,10 +2,21 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
-    const { email, password, name, sso } = await req.json();
+    const session = await getServerSession(authConfig);
+    const { email, password, name, sso, role } = await req.json();
+
+    // If role is provided, ensure only admins can set it
+    if (role && (!session || session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json(
+        { error: "Unauthorized to set user role" },
+        { status: 401 }
+      );
+    }
 
     if (!email || !password || !name || !sso) {
       return NextResponse.json(
@@ -29,14 +40,14 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user with specified role if admin, otherwise default to PENDING
     const user = await db.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
         sso,
-        role: UserRole.PENDING,
+        role: role || UserRole.PENDING,
       },
     });
 

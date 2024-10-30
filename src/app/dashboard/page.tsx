@@ -41,6 +41,15 @@ export default async function DashboardPage() {
                 View completed and signed records
               </p>
             </Link>
+            <Link
+              href="/dashboard/admin"
+              className="block p-4 rounded-lg border hover:border-blue-500 transition-colors"
+            >
+              <h2 className="text-lg font-semibold mb-2">Manage Users</h2>
+              <p className="text-sm text-muted-foreground">
+                View and edit users and roles
+              </p>
+            </Link>
           </>
         )}
 

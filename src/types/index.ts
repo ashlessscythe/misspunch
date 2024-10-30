@@ -3,7 +3,21 @@ import { User, TimePunch as PrismaTimePunch } from "@prisma/client";
 // Database model types
 export type { User, PrismaTimePunch };
 
+// Selected user fields type
+export type SelectedUser = Pick<
+  User,
+  "id" | "email" | "name" | "role" | "createdAt"
+>;
+
 // Serialized types for client components
+export interface SerializedUser {
+  id: string;
+  email: string;
+  name: string;
+  role: User["role"];
+  createdAt: string;
+}
+
 export interface SerializedTimePunch {
   id: string;
   employeeId: string;
@@ -28,7 +42,17 @@ export interface SerializedTimePunch {
   };
 }
 
-// Helper function to serialize a time punch
+// Helper functions to serialize data
+export function serializeUser(user: SelectedUser): SerializedUser {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    createdAt: user.createdAt.toISOString(),
+  };
+}
+
 export function serializeTimePunch(
   punch: PrismaTimePunch & {
     employee: {

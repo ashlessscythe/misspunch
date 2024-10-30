@@ -34,6 +34,12 @@ export function Header() {
                 {session.user.role === "ADMIN" && (
                   <>
                     <Link
+                      href="/dashboard/admin"
+                      className="text-sm font-medium"
+                    >
+                      User Management
+                    </Link>
+                    <Link
                       href="/records/assigned"
                       className="text-sm font-medium"
                     >
