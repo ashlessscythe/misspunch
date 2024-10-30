@@ -12,7 +12,7 @@
     "seed": "node prisma/seed.js"
   },
   "dependencies": {
-    "@auth/core": "^0.37.2",
+    "@auth/core": "0.34.2",
     "@auth/prisma-adapter": "^2.7.2",
     "@prisma/client": "^5.21.1",
     "@radix-ui/react-dropdown-menu": "^2.1.2",
@@ -27,8 +27,8 @@
     "lucide-react": "^0.454.0",
     "next": "14.1.0",
     "next-auth": "^4.24.5",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.8"
@@ -42,8 +42,6 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
-    "faker": "^6.6.6",
-    "faker-js": "^1.0.0",
     "postcss": "^8.4.47",
     "prisma": "^5.21.1",
     "tailwindcss": "^3.4.14",
