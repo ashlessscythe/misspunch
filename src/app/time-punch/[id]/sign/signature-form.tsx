@@ -53,37 +53,41 @@ export function SignatureForm({ timePunchId }: SignatureFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Employee Signature
-              </label>
-              <SignaturePad onChange={handleSignatureChange} />
-            </div>
+    <div className="max-w-2xl mx-auto w-full">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card className="w-full">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Employee Signature
+                </label>
+                <div className="max-w-xl mx-auto">
+                  <SignaturePad onChange={handleSignatureChange} />
+                </div>
+              </div>
 
-            <div className="flex justify-end space-x-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handlePrint}
-                className="print:hidden"
-              >
-                Print for Manual Signature
-              </Button>
-              <Button
-                type="submit"
-                className="print:hidden"
-                disabled={loading || !signature}
-              >
-                {loading ? "Saving..." : "Save Signature"}
-              </Button>
+              <div className="flex justify-end space-x-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePrint}
+                  className="print:hidden"
+                >
+                  Print for Manual Signature
+                </Button>
+                <Button
+                  type="submit"
+                  className="print:hidden"
+                  disabled={loading || !signature}
+                >
+                  {loading ? "Saving..." : "Save Signature"}
+                </Button>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-    </form>
+          </CardContent>
+        </Card>
+      </form>
+    </div>
   );
 }

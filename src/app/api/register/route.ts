@@ -36,7 +36,7 @@ export async function POST(req: Request) {
         password: hashedPassword,
         name,
         sso,
-        role: UserRole.ASSOCIATE,
+        role: UserRole.PENDING,
       },
     });
 

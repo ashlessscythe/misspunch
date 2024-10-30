@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { SignatureDisplay } from "@/components/signature-display";
 import { SerializedTimePunch } from "@/types";
 
-export default async function RecordsPage() {
+export default async function SignedRecordsPage() {
   const session = await getServerSession(authConfig);
 
   if (

@@ -12,14 +12,8 @@ export function SignatureDisplay({
   height = 200,
 }: SignatureDisplayProps) {
   return (
-    <div className="border rounded-md p-2 bg-white">
-      <img
-        src={signatureData}
-        alt="Signature"
-        width={width}
-        height={height}
-        className="w-full h-auto"
-      />
+    <div className="border rounded-md p-2 bg-white inline-block">
+      <img src={signatureData} alt="Signature" width={width} height={height} />
     </div>
   );
 }

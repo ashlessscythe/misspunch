@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import type { NextAuthOptions } from "next-auth";
-import type { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
@@ -67,22 +66,24 @@ export const authConfig: NextAuthOptions = {
     error: "/login",
   },
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user: any }) {
+    async session({ token, session }) {
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as UserRole;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+      }
+      return session;
+    },
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
       }
       return token;
     },
-    async session({ token, session }: { token: JWT; session: any }) {
-      if (token) {
-        session.user.id = token.id;
-        session.user.role = token.role;
-      }
-      return session;
-    },
   },
   session: {
-    strategy: "jwt" as const,
+    strategy: "jwt",
   },
 };
