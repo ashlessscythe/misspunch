@@ -34,12 +34,6 @@ export function Header() {
                 {session.user.role === "ADMIN" && (
                   <>
                     <Link
-                      href="/dashboard/admin"
-                      className="text-sm font-medium"
-                    >
-                      User Management
-                    </Link>
-                    <Link
                       href="/records/assigned"
                       className="text-sm font-medium"
                     >
@@ -50,6 +44,15 @@ export function Header() {
                       className="text-sm font-medium"
                     >
                       Signed Records
+                    </Link>
+                    <Link
+                      href="/dashboard/admin"
+                      className="rounded text-sm font-medium outline
+    outline-2 outline-offset-2
+    outline-gray-300 dark:outline-gray-600
+    hover:outline-gray-400 dark:hover:outline-gray-500"
+                    >
+                      Admin Dashboard
                     </Link>
                   </>
                 )}

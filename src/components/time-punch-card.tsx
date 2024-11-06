@@ -5,6 +5,7 @@ import { SerializedTimePunch } from "@/types";
 
 interface TimePunchCardProps {
   punch: SerializedTimePunch;
+  showSupervisor?: boolean;
 }
 
 function formatDate(dateStr: string) {
@@ -27,7 +28,10 @@ function formatTime(timeStr: string | null) {
   });
 }
 
-export function TimePunchCard({ punch }: TimePunchCardProps) {
+export function TimePunchCard({
+  punch,
+  showSupervisor = false,
+}: TimePunchCardProps) {
   const handlePrint = () => {
     window.print();
   };
@@ -45,6 +49,11 @@ export function TimePunchCard({ punch }: TimePunchCardProps) {
           <p>
             <strong>SSO:</strong> {punch.employee.sso}
           </p>
+          {showSupervisor && punch.supervisor && (
+            <p>
+              <strong>Supervisor:</strong> {punch.supervisor.name}
+            </p>
+          )}
           <p>
             <strong>Date:</strong> {formatDate(punch.date)}
           </p>

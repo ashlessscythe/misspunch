@@ -4,22 +4,26 @@ import { authConfig } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { SignatureDisplay } from "@/components/signature-display";
+import { serializeTimePunch } from "@/types";
 
-export default async function SupervisorSignedRecordsPage() {
+export default async function SignedRecordsPage() {
   const session = await getServerSession(authConfig);
 
-  if (!session) {
+  if (
+    !session?.user ||
+    (session.user.role !== "SUPERVISOR" && session.user.role !== "ADMIN")
+  ) {
     redirect("/login");
   }
 
-  if (session.user.role !== "SUPERVISOR") {
-    redirect("/dashboard");
-  }
-
-  // Fetch signed records where the current user was the supervisor
-  const signedRecords = await db.timePunch.findMany({
+  // Fetch signed time punches based on role
+  const signedTimePunches = await db.timePunch.findMany({
     where: {
-      supervisorId: session.user.id,
+      // For admin, show all signed records
+      // For supervisor, only show their assigned records
+      ...(session.user.role === "SUPERVISOR"
+        ? { supervisorId: session.user.id }
+        : {}),
       isDigitallySigned: true,
     },
     include: {
@@ -29,81 +33,88 @@ export default async function SupervisorSignedRecordsPage() {
           sso: true,
         },
       },
+      supervisor: {
+        select: {
+          name: true,
+        },
+      },
     },
     orderBy: {
       signatureDate: "desc",
     },
   });
 
+  // Serialize time punches
+  const serializedPunches = signedTimePunches.map(serializeTimePunch);
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Signed Records</h1>
+    <main className="container py-8">
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>
+            {session.user.role === "ADMIN"
+              ? "All Signed Records"
+              : "Signed Records"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            View completed time punch records with signatures.
+          </p>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4">
-        {signedRecords.length === 0 ? (
+        {serializedPunches.length === 0 ? (
           <Card>
             <CardContent className="py-8">
               <p className="text-center text-muted-foreground">
-                No signed records found.
+                No signed time punch records found.
               </p>
             </CardContent>
           </Card>
         ) : (
-          signedRecords.map((record) => (
-            <Card key={record.id}>
-              <CardHeader>
-                <CardTitle>Time Punch Record</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-2">
-                  <p>
-                    <strong>Employee:</strong> {record.employee.name}
-                  </p>
-                  <p>
-                    <strong>SSO:</strong> {record.employee.sso}
-                  </p>
-                  <p>
-                    <strong>Date:</strong>{" "}
-                    {new Date(record.date).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <strong>Location:</strong> {record.location}
-                  </p>
-                  {record.timeIn && (
+          serializedPunches.map((punch) => (
+            <Card key={punch.id}>
+              <CardContent className="py-6">
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
                     <p>
-                      <strong>Time In:</strong>{" "}
-                      {new Date(record.timeIn).toLocaleTimeString()}
+                      <strong>Employee:</strong> {punch.employee.name}
                     </p>
-                  )}
-                  {record.timeOut && (
                     <p>
-                      <strong>Time Out:</strong>{" "}
-                      {new Date(record.timeOut).toLocaleTimeString()}
+                      <strong>SSO:</strong> {punch.employee.sso}
                     </p>
-                  )}
-                  {record.mealIn && (
-                    <p>
-                      <strong>Meal In:</strong>{" "}
-                      {new Date(record.mealIn).toLocaleTimeString()}
-                    </p>
-                  )}
-                  {record.mealOut && (
-                    <p>
-                      <strong>Meal Out:</strong>{" "}
-                      {new Date(record.mealOut).toLocaleTimeString()}
-                    </p>
-                  )}
-                  {record.signature && (
-                    <div className="mt-4">
-                      <p className="font-medium mb-2">Signature:</p>
-                      <SignatureDisplay
-                        signatureData={record.signature}
-                        width={200}
-                        height={100}
-                      />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Signed on:{" "}
-                        {new Date(record.signatureDate!).toLocaleString()}
+                    {session.user.role === "ADMIN" && punch.supervisor && (
+                      <p>
+                        <strong>Supervisor:</strong> {punch.supervisor.name}
                       </p>
+                    )}
+                    <p>
+                      <strong>Date:</strong>{" "}
+                      {new Date(punch.date).toLocaleDateString()}
+                    </p>
+                    <p>
+                      <strong>Location:</strong> {punch.location}
+                    </p>
+                    <p>
+                      <strong>Signed:</strong>{" "}
+                      {punch.signatureDate
+                        ? new Date(punch.signatureDate).toLocaleString()
+                        : "Not signed"}
+                    </p>
+                  </div>
+
+                  {punch.signature && (
+                    <div>
+                      <p className="mb-2">
+                        <strong>Signature:</strong>
+                      </p>
+                      <SignatureDisplay
+                        signature={punch.signature}
+                        width={400}
+                        height={200}
+                      />
                     </div>
                   )}
                 </div>
@@ -112,6 +123,6 @@ export default async function SupervisorSignedRecordsPage() {
           ))
         )}
       </div>
-    </div>
+    </main>
   );
 }

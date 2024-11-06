@@ -10,16 +10,22 @@ export const POST = async (
   try {
     const session = await getServerSession(authConfig);
 
-    if (!session?.user || session.user.role !== "SUPERVISOR") {
+    if (
+      !session?.user ||
+      (session.user.role !== "SUPERVISOR" && session.user.role !== "ADMIN")
+    ) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
     const data = await request.json();
 
+    // For admin, don't check supervisorId
     const timePunch = await db.timePunch.update({
       where: {
         id: params.id,
-        supervisorId: session.user.id,
+        ...(session.user.role === "SUPERVISOR"
+          ? { supervisorId: session.user.id }
+          : {}),
       },
       data: {
         signature: data.signature,
@@ -36,6 +42,7 @@ export const POST = async (
         changes: {
           signature: "Digital signature added",
           signatureDate: data.signatureDate,
+          signedBy: session.user.role, // Track whether admin or supervisor signed
         },
         performedBy: session.user.id,
       },

@@ -75,3 +75,75 @@ UI/UX Enhancements:
 - Add advanced search
 - Create analytics dashboard
 - Add audit log viewer
+
+Table & List Enhancements:
+Tables/Views Requiring Updates:
+1. User Management Table (/dashboard/admin)
+   - User list with role management
+   - Currently shows: name, email, role, creation date
+   
+2. Supervisor Dashboard (/dashboard/supervisor)
+   - Pending time punch records
+   - Currently shows: employee name, SSO, date, location, times
+   
+3. Signed Records View (/dashboard/supervisor/signed)
+   - Completed time punch records with signatures
+   - Currently shows: employee name, SSO, date, location, signature
+   
+4. Admin Supervisor View (/dashboard/supervisor as admin)
+   - All pending records across supervisors
+   - Currently shows: employee name, SSO, supervisor name, date, location
+   
+5. Payroll Dashboard (/dashboard/payroll)
+   - Time punch records created by payroll staff
+   - Currently shows: created records list
+   
+6. Audit Log Viewer (to be implemented)
+   - System-wide audit trail
+   - Will show: action, user, timestamp, changes
+
+Required Features for Each Table:
+- Add column sorting
+  * Sort by date (ascending/descending)
+  * Sort by employee name
+  * Sort by status
+  * Sort by location
+  * Multiple column sort support
+- Add filtering capabilities
+  * Filter by date range
+  * Filter by employee
+  * Filter by supervisor (where applicable)
+  * Filter by status
+  * Filter by location
+  * Multiple filter support
+- Add search functionality
+  * Full-text search across records
+  * Search by SSO
+  * Search by name
+  * Search by reason
+- Add pagination controls
+  * Configurable page size
+  * Page navigation
+  * Total count display
+- Add bulk actions
+  * Select multiple records
+  * Batch status updates
+  * Batch exports
+- Add column customization
+  * Show/hide columns
+  * Reorder columns
+  * Save column preferences
+- Add data export options
+  * Export to CSV
+  * Export to PDF
+  * Custom export fields
+
+Priority Implementation Order:
+1. User Management Table (most frequently used by admins)
+2. Supervisor Dashboard (critical for daily operations)
+3. Signed Records View (important for record keeping)
+4. Admin Supervisor View (management oversight)
+5. Payroll Dashboard (internal operations)
+6. Audit Log Viewer (compliance and tracking)
+
+Note: Each table may require specific customization of these features based on its unique requirements and user roles.

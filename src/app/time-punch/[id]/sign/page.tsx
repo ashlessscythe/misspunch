@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { authConfig } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { SignatureForm } from "./signature-form"; // Fixed import path
+import { SignatureForm } from "./signature-form";
 
 export default async function SignTimePunchPage({
   params,
@@ -12,20 +12,31 @@ export default async function SignTimePunchPage({
 }) {
   const session = await getServerSession(authConfig);
 
-  if (!session?.user || session.user.role !== "SUPERVISOR") {
+  if (
+    !session?.user ||
+    (session.user.role !== "SUPERVISOR" && session.user.role !== "ADMIN")
+  ) {
     redirect("/login");
   }
 
   const timePunch = await db.timePunch.findUnique({
     where: {
       id: params.id,
-      supervisorId: session.user.id,
+      // For admin, don't filter by supervisorId
+      ...(session.user.role === "SUPERVISOR"
+        ? { supervisorId: session.user.id }
+        : {}),
     },
     include: {
       employee: {
         select: {
           name: true,
           sso: true,
+        },
+      },
+      supervisor: {
+        select: {
+          name: true,
         },
       },
     },
@@ -50,6 +61,11 @@ export default async function SignTimePunchPage({
               <p>
                 <strong>SSO:</strong> {timePunch.employee.sso}
               </p>
+              {session.user.role === "ADMIN" && timePunch.supervisor && (
+                <p>
+                  <strong>Supervisor:</strong> {timePunch.supervisor.name}
+                </p>
+              )}
               <p>
                 <strong>Date:</strong> {timePunch.date.toLocaleDateString()}
               </p>

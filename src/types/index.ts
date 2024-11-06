@@ -40,6 +40,9 @@ export interface SerializedTimePunch {
     name: string;
     sso: string;
   };
+  supervisor?: {
+    name: string;
+  } | null;
 }
 
 // Helper functions to serialize data
@@ -59,6 +62,9 @@ export function serializeTimePunch(
       name: string;
       sso: string;
     };
+    supervisor?: {
+      name: string;
+    } | null;
   }
 ): SerializedTimePunch {
   const serialized: SerializedTimePunch = {
@@ -75,6 +81,7 @@ export function serializeTimePunch(
       name: punch.employee.name,
       sso: punch.employee.sso,
     },
+    supervisor: punch.supervisor || null,
   };
   return serialized;
 }

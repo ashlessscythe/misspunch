@@ -4,19 +4,26 @@ import { authConfig } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { TimePunchCard } from "@/components/time-punch-card";
-import { serializeTimePunch } from "@/types";
+import { SerializedTimePunch, serializeTimePunch } from "@/types";
 
 export default async function SupervisorDashboardPage() {
   const session = await getServerSession(authConfig);
 
-  if (!session?.user || session.user.role !== "SUPERVISOR") {
+  if (
+    !session?.user ||
+    (session.user.role !== "SUPERVISOR" && session.user.role !== "ADMIN")
+  ) {
     redirect("/login");
   }
 
-  // Fetch time punches assigned to this supervisor
+  // Fetch time punches based on role
   const pendingTimePunches = await db.timePunch.findMany({
     where: {
-      supervisorId: session.user.id,
+      // For admin, show all unsigned records
+      // For supervisor, only show their assigned records
+      ...(session.user.role === "SUPERVISOR"
+        ? { supervisorId: session.user.id }
+        : {}),
       isDigitallySigned: false, // Not yet signed
     },
     include: {
@@ -24,6 +31,11 @@ export default async function SupervisorDashboardPage() {
         select: {
           name: true,
           sso: true,
+        },
+      },
+      supervisor: {
+        select: {
+          name: true,
         },
       },
     },
@@ -39,11 +51,17 @@ export default async function SupervisorDashboardPage() {
     <main className="container py-8">
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Supervisor Dashboard</CardTitle>
+          <CardTitle>
+            {session.user.role === "ADMIN"
+              ? "Admin Supervisor Dashboard"
+              : "Supervisor Dashboard"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            Review time punch records and collect signatures.
+            {session.user.role === "ADMIN"
+              ? "Review all time punch records and collect signatures."
+              : "Review time punch records and collect signatures."}
           </p>
         </CardContent>
       </Card>
@@ -58,8 +76,12 @@ export default async function SupervisorDashboardPage() {
             </CardContent>
           </Card>
         ) : (
-          serializedPunches.map((punch) => (
-            <TimePunchCard key={punch.id} punch={punch} />
+          serializedPunches.map((punch: SerializedTimePunch) => (
+            <TimePunchCard
+              key={punch.id}
+              punch={punch}
+              showSupervisor={session.user.role === "ADMIN"}
+            />
           ))
         )}
       </div>
